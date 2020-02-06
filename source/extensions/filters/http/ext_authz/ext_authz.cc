@@ -164,6 +164,7 @@ void Filter::onComplete(Filters::Common::ExtAuthz::ResponsePtr&& response) {
 
   switch (response->status) {
   case CheckStatus::OK: {
+    ENVOY_STREAM_LOG(debug, "ext_authz response is: '{}'", *callbacks_, response);
     ENVOY_STREAM_LOG(trace, "ext_authz filter added header(s) to the request:", *callbacks_);
     if (config_->clearRouteCache() &&
         (!response->headers_to_add.empty() || !response->headers_to_append.empty())) {
@@ -190,7 +191,7 @@ void Filter::onComplete(Filters::Common::ExtAuthz::ResponsePtr&& response) {
   }
 
   case CheckStatus::Denied: {
-    ENVOY_STREAM_LOG(trace, "ext_authz filter rejected the request. Response status code: '{}",
+    ENVOY_STREAM_LOG(trace, "ext_authz filter rejected the request. Response status code: '{}'",
                      *callbacks_, enumToInt(response->status_code));
     stats_.denied_.inc();
 
@@ -247,8 +248,8 @@ void Filter::onComplete(Filters::Common::ExtAuthz::ResponsePtr&& response) {
       continueDecoding();
     } else {
       ENVOY_STREAM_LOG(
-          trace, "ext_authz filter rejected the request with an error. Response status code: {}",
-          *callbacks_, enumToInt(config_->statusOnError()));
+          trace, "ext_authz filter rejected the request with an error. Response status code: '{}', Error: {}",
+          *callbacks_, enumToInt(config_->statusOnError()), response);
       callbacks_->streamInfo().setResponseFlag(
           StreamInfo::ResponseFlag::UnauthorizedExternalService);
       callbacks_->sendLocalReply(config_->statusOnError(), EMPTY_STRING, nullptr, absl::nullopt,
