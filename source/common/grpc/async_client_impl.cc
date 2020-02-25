@@ -7,6 +7,9 @@
 #include "common/http/header_map_impl.h"
 #include "common/http/utility.h"
 
+#include <iostream>
+#include <string>
+
 namespace Envoy {
 namespace Grpc {
 
@@ -141,6 +144,7 @@ void AsyncStreamImpl::onData(Buffer::Instance& data, bool end_stream) {
   }
 
   if (end_stream) {
+      std::cout << "[JELLE] ext_authz filter inside AsyncStreamImpl::onData with end_stream=true";
     streamError(Status::WellKnownGrpcStatus::Unknown);
   }
 }
@@ -152,6 +156,7 @@ void AsyncStreamImpl::onTrailers(Http::HeaderMapPtr&& trailers) {
   const std::string grpc_message = Common::getGrpcMessage(*trailers);
   callbacks_.onReceiveTrailingMetadata(std::move(trailers));
   if (!grpc_status) {
+      std::cout << "[JELLE] ext_authz filter inside AsyncStreamImpl::onTrailers with !grpc_status";
     grpc_status = Status::WellKnownGrpcStatus::Unknown;
   }
   callbacks_.onRemoteClose(grpc_status.value(), grpc_message);
